@@ -1,8 +1,7 @@
 from Populacao import Populacao
-from Fitness import Fitness
-from Roleta import Roleta
+from EvolucaoGenetica import EvolucaoGenetica
 
-# Mapas para transformar genótipos em fenótipos legíveis
+# === Mapas para fenotipagem ===
 mapas = {
     "cor": ["Amarela", "Azul", "Branca", "Verde", "Vermelha"],
     "nacionalidade": ["Norueguês", "Dinamarquês", "Inglês", "Alemão", "Sueco"],
@@ -11,55 +10,69 @@ mapas = {
     "animal": ["Cachorros", "Cavalos", "Gatos", "Pássaros", "Peixes"]
 }
 
-# Parâmetros
+# === Parâmetros do Algoritmo ===
 TAMANHO_POPULACAO = 10
-TAXA_SOBREVIVENCIA = 0.6
+TAXA_ELITES = 0.2          # 20%
+TAXA_CROSSOVER = 0.7      # 60%
+TAXA_MUTACAO = 0.3       # 70%
+NUM_GERACOES = 400         # 0 para ilimitado
+FITNESS_OBJETIVO = 99      # 0 para ignorar
 
-# Inicialização
-populacao = Populacao(TAMANHO_POPULACAO)
-fitness_calc = Fitness()
-roleta = Roleta(taxa_sobrevivencia=TAXA_SOBREVIVENCIA)
+# === Verificação das taxas ===
+if TAXA_ELITES + TAXA_CROSSOVER > 1.0:
+    print("Erro: A soma da taxa de elites e da taxa de crossover excede 100%.")
+    print(f"Taxa de elites: {TAXA_ELITES * 100:.0f}%")
+    print(f"Taxa de crossover: {TAXA_CROSSOVER * 100:.0f}%")
+    print(f"Soma total: {(TAXA_ELITES + TAXA_CROSSOVER) * 100:.0f}%")
+    exit(1)
 
-individuos = populacao.get_individuos()
+# === Inicialização ===
+populacao = Populacao(TAMANHO_POPULACAO).get_individuos()
+evolucao = EvolucaoGenetica()
+avaliados, fitnesses = evolucao.avaliar_populacao(populacao)
+melhor_fitness_geral = max(fitnesses)
+geracao = 0
 
-# Cálculo do fitness para cada indivíduo
-fitnesses = []
-avaliados = []  # tuplas (cromossomo, fitness, regras)
-for cromo in individuos:
-    fit, regras = fitness_calc.calcular(cromo)
-    fitnesses.append(fit)
-    avaliados.append((cromo, fit, regras))
+# === Loop Evolutivo ===
+while True:
+    print(f"\n=== Geração {geracao} ===")
+    for idx, (cromo, fit, regras) in enumerate(avaliados, 1):
+        print(f"Indivíduo {idx} - Fitness: {fit} | Regras atendidas: {regras}")
+        casas = cromo.to_fenotipo(mapas)
+        for i, casa in enumerate(casas):
+            print(f"  Casa {i+1}: {casa}")
+        print()
 
-# === Antes da roleta ===
-print("=== População Inicial ===\n")
-for idx, (cromo, score, regras) in enumerate(avaliados, 1):
-    print(f"Indivíduo {idx}:")
-    for i, casa in enumerate(cromo.get_matriz()):
-        casa_legivel = {
-            "cor": mapas["cor"][casa[0]],
-            "nacionalidade": mapas["nacionalidade"][casa[1]],
-            "bebida": mapas["bebida"][casa[2]],
-            "cigarro": mapas["cigarro"][casa[3]],
-            "animal": mapas["animal"][casa[4]]
-        }
-        print(f"  Casa {i+1}: {casa_legivel}")
-    print(f"Fitness: {score} | Regras atendidas: {regras}\n")
+    # Critério de parada por fitness
+    if FITNESS_OBJETIVO > 0 and melhor_fitness_geral >= FITNESS_OBJETIVO:
+        print(f"\n✅ Solução ótima encontrada na geração {geracao} com fitness {melhor_fitness_geral}!")
+        break
 
-# Seleção por roleta
-sobreviventes = roleta.girar(individuos, fitnesses)
+    # Critério de parada por número de gerações
+    if NUM_GERACOES > 0 and geracao >= NUM_GERACOES:
+        print(f"\n🏁 Limite de gerações atingido ({NUM_GERACOES}). Melhor fitness obtido: {melhor_fitness_geral}")
+        break
 
-# === Depois da roleta ===
-print("=== Sobreviventes ===\n")
-for idx, cromo in enumerate(sobreviventes, 1):
-    score, regras = fitness_calc.calcular(cromo)
-    print(f"Sobrevivente {idx}:")
-    for i, casa in enumerate(cromo.get_matriz()):
-        casa_legivel = {
-            "cor": mapas["cor"][casa[0]],
-            "nacionalidade": mapas["nacionalidade"][casa[1]],
-            "bebida": mapas["bebida"][casa[2]],
-            "cigarro": mapas["cigarro"][casa[3]],
-            "animal": mapas["animal"][casa[4]]
-        }
-        print(f"  Casa {i+1}: {casa_legivel}")
-    print(f"Fitness: {score} | Regras atendidas: {regras}\n")
+    # Evolução
+    nova_info, nova_populacao, _ = evolucao.evoluir(
+        populacao,
+        taxa_elites=TAXA_ELITES,
+        taxa_crossover=TAXA_CROSSOVER,
+        taxa_mutacao=TAXA_MUTACAO
+    )
+
+    populacao = nova_populacao
+    avaliados, fitnesses = evolucao.avaliar_populacao(populacao)
+    melhor_fitness_geral = max(fitnesses)
+    geracao += 1
+
+# === Exibe Melhor Solução Final ===
+melhor_indice = fitnesses.index(max(fitnesses))
+melhor_cromossomo, melhor_fitness, regras_atendidas = avaliados[melhor_indice]
+
+print("\n=== Melhor Solução Final ===")
+print(f"Fitness: {melhor_fitness}")
+print(f"Regras atendidas: {regras_atendidas}")
+casas = melhor_cromossomo.to_fenotipo(mapas)
+for i, casa in enumerate(casas):
+    print(f"  Casa {i+1}: {casa}")

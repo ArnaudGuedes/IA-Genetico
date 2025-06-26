@@ -6,9 +6,9 @@ class Populacao:
         self.individuos = [self._gerar_cromossomo() for _ in range(tamanho)]
 
     def _gerar_cromossomo(self):
-        atributos = [random.sample(range(5), 5) for _ in range(5)]
-        matriz = [list(casa) for casa in zip(*atributos)]
-        return Cromossomo(matriz)
+        # Cria 75 bits aleatórios (0 ou 1)
+        genes = [random.randint(0, 1) for _ in range(75)]
+        return Cromossomo(genes)
 
     def get_individuos(self):
         return self.individuos

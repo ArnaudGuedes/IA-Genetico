@@ -26,3 +26,9 @@ class Roleta:
 
         sobreviventes = [populacao[i] for i in selecionados_idx]
         return sobreviventes
+
+    def selecionar_elites(individuos, qtd):
+        """
+        Seleciona os 'qtd' indivíduos com maior fitness da população.
+        """
+        return sorted(individuos, key=lambda ind: ind.get_fitness(), reverse=True)[:qtd]
