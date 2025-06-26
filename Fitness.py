@@ -96,6 +96,6 @@ class Fitness:
                     regras_atendidas.append(15)
                     break
 
-        # Normaliza score para escala de 1 a 100
+
         fitness = int((score / 15) * 99 + 1)
         return fitness, regras_atendidas

@@ -4,16 +4,13 @@ from Cromossomo import Cromossomo
 class Mutacao:
     @staticmethod
     def aplicar(cromossomo):
-        """
-        Aplica uma mutação leve ao cromossomo: troca dois valores em uma mesma coluna aleatória.
-        Preserva a restrição de unicidade por coluna.
-        """
+
         matriz = cromossomo.get_matriz()
 
-        # Escolhe uma coluna aleatória (atributo) para mutar
+
         col = random.randint(0, 4)
 
-        # Escolhe duas linhas aleatórias para trocar os valores nessa coluna
+
         i, j = random.sample(range(5), 2)
         matriz[i][col], matriz[j][col] = matriz[j][col], matriz[i][col]
 

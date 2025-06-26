@@ -1,7 +1,7 @@
 from Populacao import Populacao
 from EvolucaoGenetica import EvolucaoGenetica
+import matplotlib.pyplot as plt
 
-# === Mapas para fenotipagem ===
 mapas = {
     "cor": ["Amarela", "Azul", "Branca", "Verde", "Vermelha"],
     "nacionalidade": ["Norueguês", "Dinamarquês", "Inglês", "Alemão", "Sueco"],
@@ -10,30 +10,31 @@ mapas = {
     "animal": ["Cachorros", "Cavalos", "Gatos", "Pássaros", "Peixes"]
 }
 
-# === Parâmetros do Algoritmo ===
-TAMANHO_POPULACAO = 10
-TAXA_ELITES = 0.2          # 20%
-TAXA_CROSSOVER = 0.7      # 60%
-TAXA_MUTACAO = 0.3       # 70%
-NUM_GERACOES = 400         # 0 para ilimitado
-FITNESS_OBJETIVO = 99      # 0 para ignorar
+TAMANHO_POPULACAO = 50
+TAXA_ELITES = 0.1
+TAXA_CROSSOVER = 0.7
+TAXA_MUTACAO = 0.5
+NUM_GERACOES = 10
+FITNESS_OBJETIVO = 99
 
-# === Verificação das taxas ===
+
+
 if TAXA_ELITES + TAXA_CROSSOVER > 1.0:
-    print("Erro: A soma da taxa de elites e da taxa de crossover excede 100%.")
-    print(f"Taxa de elites: {TAXA_ELITES * 100:.0f}%")
-    print(f"Taxa de crossover: {TAXA_CROSSOVER * 100:.0f}%")
-    print(f"Soma total: {(TAXA_ELITES + TAXA_CROSSOVER) * 100:.0f}%")
+    print("Erro: A soma da taxa excede 100%.")
+
     exit(1)
 
-# === Inicialização ===
+
 populacao = Populacao(TAMANHO_POPULACAO).get_individuos()
 evolucao = EvolucaoGenetica()
 avaliados, fitnesses = evolucao.avaliar_populacao(populacao)
 melhor_fitness_geral = max(fitnesses)
 geracao = 0
 
-# === Loop Evolutivo ===
+
+historico_fitness = []
+historico_regras = []
+
 while True:
     print(f"\n=== Geração {geracao} ===")
     for idx, (cromo, fit, regras) in enumerate(avaliados, 1):
@@ -43,12 +44,15 @@ while True:
             print(f"  Casa {i+1}: {casa}")
         print()
 
-    # Critério de parada por fitness
+        historico_fitness.append(max(fitnesses))
+        historico_regras.append(len(regras))
+
+
     if FITNESS_OBJETIVO > 0 and melhor_fitness_geral >= FITNESS_OBJETIVO:
         print(f"\n✅ Solução ótima encontrada na geração {geracao} com fitness {melhor_fitness_geral}!")
         break
 
-    # Critério de parada por número de gerações
+
     if NUM_GERACOES > 0 and geracao >= NUM_GERACOES:
         print(f"\n🏁 Limite de gerações atingido ({NUM_GERACOES}). Melhor fitness obtido: {melhor_fitness_geral}")
         break
@@ -66,7 +70,30 @@ while True:
     melhor_fitness_geral = max(fitnesses)
     geracao += 1
 
-# === Exibe Melhor Solução Final ===
+# exibindo resultados
+plt.figure(figsize=(12, 5))
+
+# Evolução do Fitness
+plt.subplot(1, 2, 1)
+plt.plot(historico_fitness, 'b-', linewidth=2)
+plt.title('Evolução do Melhor Fitness')
+plt.xlabel('Geração')
+plt.ylabel('Fitness (0-100)')
+plt.grid(True)
+
+# Evolução das Regras Atendidas
+plt.subplot(1, 2, 2)
+plt.plot(historico_regras, 'r-', linewidth=2)
+plt.title('Regras Atendidas pelo Melhor Indivíduo')
+plt.xlabel('Geração')
+plt.ylabel('Número de Regras (0-15)')
+plt.ylim(0, 15)
+plt.grid(True)
+
+plt.tight_layout()
+plt.savefig('evolucao_fitness.png', dpi=300, bbox_inches='tight')
+plt.close()
+
 melhor_indice = fitnesses.index(max(fitnesses))
 melhor_cromossomo, melhor_fitness, regras_atendidas = avaliados[melhor_indice]
 

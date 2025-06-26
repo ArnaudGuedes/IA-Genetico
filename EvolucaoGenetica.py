@@ -68,35 +68,35 @@ class EvolucaoGenetica:
     def evoluir(self, populacao_atual, taxa_elites, taxa_crossover, taxa_mutacao):
         tamanho_original = len(populacao_atual)
 
-        # Etapa 1: Avaliação
+
         resultados, fitnesses = self.avaliar_populacao(populacao_atual)
 
-        # Etapa 2: Quantidades
+
         qtd_elites = int(tamanho_original * taxa_elites)
         qtd_crossover = int(tamanho_original * taxa_crossover)
         qtd_imigrantes = tamanho_original - qtd_elites - qtd_crossover
 
-        # Etapa 3: Seleção de elites
+
         elites = self.selecionar_elites(populacao_atual, fitnesses, qtd_elites)
         elite_wrappers = [(e, "elite", False) for e in elites]
         genes_elites = [tuple(e.get_genes()) for e in elites]
 
-        # Etapa 4: Seleção de pais para crossover (excluindo os elites)
+
         pais_disponiveis = self.selecionar_sobreviventes(populacao_atual, fitnesses, 1.0, genes_elites)
         filhos_crossover = self.aplicar_crossover(pais_disponiveis, taxa_crossover=1.0,
                                                   filhos_necessarios=qtd_crossover)
 
-        # Etapa 5: Mutação
+
         filhos_mutados = self.aplicar_mutacao(filhos_crossover, taxa_mutacao)
 
-        # Etapa 6: Imigração
+
         imigrantes = self.aplicar_imigracao(qtd_imigrantes)
 
-        # Etapa 7: Composição da nova população
+
         nova_populacao_info = elite_wrappers + filhos_mutados + imigrantes
         nova_populacao = [ind for ind, _, _ in nova_populacao_info]
 
-        # Etapa 8: Estatísticas
+
         self.estatisticas = {
             "elites": qtd_elites,
             "crossover": qtd_crossover,

@@ -1,7 +1,7 @@
 import numpy as np
 
 class Roleta:
-    def __init__(self, taxa_sobrevivencia=0.6):
+    def __init__(self, taxa_sobrevivencia=0.75):
         self.taxa_sobrevivencia = taxa_sobrevivencia
 
     def girar(self, populacao, fitnesses):
@@ -13,10 +13,10 @@ class Roleta:
         if total_fitness == 0:
             return np.random.choice(populacao, size=n_selecionados, replace=False).tolist()
 
-        # Probabilidades proporcionais ao fitness
+
         probabilidades = [f / total_fitness for f in fitnesses]
 
-        # Seleção probabilística sem reposição
+
         selecionados_idx = np.random.choice(
             range(total),
             size=n_selecionados,
@@ -28,7 +28,5 @@ class Roleta:
         return sobreviventes
 
     def selecionar_elites(individuos, qtd):
-        """
-        Seleciona os 'qtd' indivíduos com maior fitness da população.
-        """
+
         return sorted(individuos, key=lambda ind: ind.get_fitness(), reverse=True)[:qtd]
